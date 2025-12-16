@@ -2,6 +2,7 @@ global using BlazingPizza.Shared;
 global using BlazingPizza.Client;
 
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Components.Authorization;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -14,6 +15,10 @@ builder.Services.AddScoped<HttpClient>(sp =>
 	{
 		BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
 	});
+
+builder.Services.AddAuthorizationCore();
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddSingleton<AuthenticationStateProvider, PersistentAuthenticationStateProvider>();
 
 builder.Services.AddScoped<IRepository, HttpRepository>();
 builder.Services.AddScoped<OrderState>();

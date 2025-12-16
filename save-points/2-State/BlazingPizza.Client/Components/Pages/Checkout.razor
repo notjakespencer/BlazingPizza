@@ -1,0 +1,58 @@
+﻿@page "/checkout"
+@using Microsoft.AspNetCore.Authorization;
+@rendermode InteractiveWebAssembly
+@inject OrderState OrderState
+@inject IRepository Repository //May need to be PizzaStore
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<PageTitle>Blazing Pizza - Checkout</PageTitle>
+
+<div class="main">
+    <EditForm Model="OrderState.Order.DeliveryAddress" OnValidSubmit="PlaceOrder">
+    <div class="checkout-cols">
+        <div class=checkout-order-details>
+            <h4>Review Order</h4>
+            <OrderReview Order="OrderState.Order"/>
+        </div>
+    </div>
+
+    <div class="checkout-delivery-address">
+        <h4>Deliver To...</h4>
+        <AddressEditor Address="OrderState.Order.DeliveryAddress" />
+    </div>
+
+    <button class="checkout-button btn btn-warning" type="submit">
+        Place Order
+    </button>
+    <DataAnnotationsValidator />    
+    </EditForm>
+</div>
+
+@code {
+    async Task PlaceOrder()
+    {
+        var newOrderId = await Repository.PlaceOrder(OrderState.Order);
+        OrderState.ResetOrder();
+        NavigationManager.NavigateTo($"myorders/{newOrderId}");
+    }
+
+    public EditContext EditContext { get; set; } = new EditContext(new Order());
+
+    override protected async Task OnAfterRenderAsync(bool first)
+    {
+        if (first) {
+            EditContext = new EditContext(OrderState.Order.DeliveryAddress);
+            EditContext.SetFieldCssClassProvider(new BootStrapFieldClassProvider());
+        }
+    }
+
+    public class BootStrapFieldClassProvider : FieldCssClassProvider
+    {
+        public override string GetFieldCssClass(EditContext editContext, in FieldIdentifier fieldIdentifier)
+        {
+            var isValid = editContext.IsValid(fieldIdentifier);
+            return isValid ? "is-valid" : "is-invalid";
+        }
+    }
+}

@@ -1,15 +1,35 @@
 global using BlazingPizza.Shared;
-using BlazingPizza;
+global using BlazingPizza;
 using BlazingPizza.Client;
 using BlazingPizza.Components;
+// using BlazingPizza.Components.Account;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
 		.AddInteractiveServerComponents()
 		.AddInteractiveWebAssemblyComponents();
+
+
+// Add security to container
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddAuthentication(options => {
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+})
+.AddIdentityCookies();
+
+//Add Identity
+builder.Services.AddIdentityCore<PizzaStoreUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<PizzaStoreContext>()
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddDbContext<PizzaStoreContext>(options =>
 				options.UseSqlite("Data Source=pizza.db"));

@@ -4,6 +4,7 @@
 @inject IJSRuntime JSRuntime
 @inject OrderState OrderState
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 
 <PageTitle>Blazing Pizzas</PageTitle>
@@ -34,7 +35,7 @@
 
 			@foreach (var configuredPizza in OrderState.Order.Pizzas)
 			{
-				<ConfiguredPizzaItem Pizza="configuredPizza" OnRemoved="@(() => OrderState.RemoveConfiguredPizza(configuredPizza))" />
+				<ConfiguredPizzaItem Pizza="configuredPizza" OnRemoved="@(() => RemovePizza(configuredPizza))" />
 			}
 		</div>
 	}
@@ -52,7 +53,7 @@
 	</div>
 </div>
 
-@if (OrderState.ShowingConfigureDialog)
+@if (OrderState.ShowingConfigureDialog && OrderState.ConfiguringPizza is not null)
 {
 	<ConfigurePizzaDialog Pizza="OrderState.ConfiguringPizza"
 												OnCancel="OrderState.CancelConfigurePizzaDialog"
@@ -66,6 +67,14 @@
 	{
 		specials = await PizzaStore.GetSpecials();
 		OrderState.JSRuntime = JSRuntime;
+	}
+
+	async Task RemovePizza(Pizza configuredPizza)
+	{
+		if (await JSRuntime.Confirm($"Remove {configuredPizza.Special?.Name} pizza from the order?"))
+		{
+			OrderState.RemoveConfiguredPizza(configuredPizza);
+		}
 	}
 
 }
